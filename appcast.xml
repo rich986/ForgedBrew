@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>ForgedBrew Updates</title>
+        <link>https://raw.githubusercontent.com/rich986/ForgedBrew/main/appcast.xml</link>
+        <description>Most recent updates to ForgedBrew.</description>
+        <language>en</language>
+        <item>
+            <title>Version 2.3.1</title>
+            <description><![CDATA[
+                <h2>ForgedBrew 2.3.1</h2>
+                <p>A beautiful looking glass into Homebrew - that gives you all you need to search, inform, and install your Homebrew apps and formulas.</p>
+            ]]></description>
+            <pubDate>Tue, 16 Jun 2026 13:28:47 +0000</pubDate>
+            <sparkle:version>231</sparkle:version>
+            <sparkle:shortVersionString>2.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/rich986/ForgedBrew/releases/download/v2.3.1/ForgedBrew-2.3.1.dmg"
+                sparkle:version="231"
+                sparkle:shortVersionString="2.3.1"
+                length="10201681"
+                type="application/octet-stream"
+                sparkle:edSignature="AFnuCtbSdN3AhAGdxf2Bu8i+A13VvITCSq+DQHWCfG9l4fq6nNtYNhHC5CtMN2PbBUdaG/a/PW6j+aMMpHarAQ==" />
+        </item>
+    </channel>
+</rss>
