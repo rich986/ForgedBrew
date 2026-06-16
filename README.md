@@ -36,7 +36,8 @@ means typing exact package names, remembering commands, and never really
 Homebrew a strong, modern face:
 
 - **See everything** — every app and command-line tool Homebrew manages, in one
-  place, with icons, descriptions, and version info.
+  place, with icons, descriptions, and version info. You will see a Summary Card View
+  and Detailed Card View with everything you need to see within the ForgedBrew GUI!
 - **Find anything fast** — search the entire catalog by name, by Homebrew token,
   or by *what an app does* ("password manager", "screenshot").
 - **One-click install & update** — ForgedBrew runs Homebrew for you and shows
