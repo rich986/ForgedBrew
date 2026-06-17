@@ -2,9 +2,28 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
         <title>ForgedBrew Updates</title>
-        <link>https://raw.githubusercontent.com/rich986/ForgedBrew/main/appcast.xml</link>
+        <link>https://raw.githubusercontent.com/HighfieldLondon/ForgedBrew/main/appcast.xml</link>
         <description>Most recent updates to ForgedBrew.</description>
         <language>en</language>
+        <item>
+            <title>Version 2.3.2</title>
+            <description><![CDATA[
+                <h2>ForgedBrew 2.3.2</h2>
+                <p>ForgedBrew is a beautiful, native GUI for Homebrew on macOS — discover, search, install, and update your apps and command-line tools without ever touching the Terminal.</p>
+                <p>This release brings polish and under-the-hood improvements to keep ForgedBrew fast, reliable, and ready for everyone.</p>
+            ]]></description>
+            <pubDate>Wed, 17 Jun 2026 14:30:57 +0000</pubDate>
+            <sparkle:version>232</sparkle:version>
+            <sparkle:shortVersionString>2.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.2/ForgedBrew-2.3.2.dmg"
+                sparkle:version="232"
+                sparkle:shortVersionString="2.3.2"
+                length="13028787"
+                type="application/octet-stream"
+                sparkle:edSignature="bDLBIOCm3pPgBbZonXsqcZWzzspoXbYDr6LABpxvx6+m3NVVoFzjfsCJYhC3my28jCAGIPBBVxMdXX+z+BGZCA==" />
+        </item>
         <item>
             <title>Version 2.3.1</title>
             <description><![CDATA[
@@ -16,7 +35,7 @@
             <sparkle:shortVersionString>2.3.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
             <enclosure
-                url="https://github.com/rich986/ForgedBrew/releases/download/v2.3.1/ForgedBrew-2.3.1.dmg"
+                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.1/ForgedBrew-2.3.1.dmg"
                 sparkle:version="231"
                 sparkle:shortVersionString="2.3.1"
                 length="10201681"
