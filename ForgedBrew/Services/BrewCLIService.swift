@@ -1223,19 +1223,25 @@ func brewVersion() async throws -> String {
             r.scanError == nil && !r.isAppleSystem && !r.gatekeeperAccepted
         }
 
-        // Second pass: keep only the rejected apps that STILL carry the
-        // com.apple.quarantine flag. This matters because xattr -d can only
-        // remove a flag that is actually present. An unsigned app whose flag was
-        // already cleared still fails the spctl assessment (it genuinely is not
-        // notarized) but launches fine — listing it would offer a no-op action
-        // and the app could never drop off the list. Requiring the flag
-        // guarantees every app we show has something we can remove, and that
-        // clearing it makes the app launch. We probe concurrently for speed.
-        let risks = await withTaskGroup(of: GatekeeperRisk?.self) { group in
+        // Second pass: build a GatekeeperRisk for EVERY rejected app. We no
+        // longer drop apps that lack the com.apple.quarantine flag — those are
+        // still genuinely at risk on Sept 1 (Gatekeeper rejects them), the local
+        // Trust action just can't help yet. Instead we record `isQuarantined`
+        // per app so the UI can split them into:
+        //   • actionable  — flag present, Trust button clears it now
+        //   • watch-only  — no flag to clear, shown as an informational risk
+        // We still probe the flag concurrently for speed.
+        let risks = await withTaskGroup(of: GatekeeperRisk.self) { group in
             for r in rejected {
                 group.addTask {
-                    guard await self.isQuarantined(path: r.appPath) else { return nil }
+                    let quarantined = await self.isQuarantined(path: r.appPath)
                     let reason = GatekeeperRiskReason.describe(
+                        codesignValid: r.codesignValid,
+                        teamIdentifier: r.teamIdentifier,
+                        notarized: r.notarized,
+                        signingAuthority: r.signingAuthority
+                    )
+                    let failed = GatekeeperRiskReason.failingChecks(
                         codesignValid: r.codesignValid,
                         teamIdentifier: r.teamIdentifier,
                         notarized: r.notarized,
@@ -1246,13 +1252,15 @@ func brewVersion() async throws -> String {
                         appName: r.appName,
                         appPath: r.appPath,
                         reason: reason,
-                        signingAuthority: r.signingAuthority
+                        failedChecks: failed,
+                        signingAuthority: r.signingAuthority,
+                        isQuarantined: quarantined
                     )
                 }
             }
             var found: [GatekeeperRisk] = []
             for await risk in group {
-                if let risk { found.append(risk) }
+                found.append(risk)
             }
             return found
         }
@@ -1295,12 +1303,21 @@ func brewVersion() async throws -> String {
             await onProgress(scanned, total, name)
 
             let r = await scanAppSecurity(token: bundle.token, appPath: bundle.appPath)
-            // Same filter as the batch scan: keep only apps Gatekeeper would
-            // reject, that aren't Apple system binaries, whose scan succeeded,
-            // AND that still carry the quarantine flag (so xattr -d can act).
-            if r.scanError == nil, !r.isAppleSystem, !r.gatekeeperAccepted,
-               await isQuarantined(path: r.appPath) {
+            // Same filter as the batch scan: keep every app Gatekeeper would
+            // reject, that isn't an Apple system binary and whose scan
+            // succeeded. We no longer require the quarantine flag here — a
+            // rejected app with no flag is still at risk on Sept 1, so we list
+            // it and record `isQuarantined` for the UI to split actionable vs.
+            // watch-only rows.
+            if r.scanError == nil, !r.isAppleSystem, !r.gatekeeperAccepted {
+                let quarantined = await isQuarantined(path: r.appPath)
                 let reason = GatekeeperRiskReason.describe(
+                    codesignValid: r.codesignValid,
+                    teamIdentifier: r.teamIdentifier,
+                    notarized: r.notarized,
+                    signingAuthority: r.signingAuthority
+                )
+                let failed = GatekeeperRiskReason.failingChecks(
                     codesignValid: r.codesignValid,
                     teamIdentifier: r.teamIdentifier,
                     notarized: r.notarized,
@@ -1311,7 +1328,9 @@ func brewVersion() async throws -> String {
                     appName: r.appName,
                     appPath: r.appPath,
                     reason: reason,
-                    signingAuthority: r.signingAuthority
+                    failedChecks: failed,
+                    signingAuthority: r.signingAuthority,
+                    isQuarantined: quarantined
                 ))
             }
             scanned += 1
@@ -1338,9 +1357,19 @@ func brewVersion() async throws -> String {
 
         let r = await scanAppSecurity(token: bundle.token, appPath: bundle.appPath)
         guard r.scanError == nil, !r.isAppleSystem, !r.gatekeeperAccepted else { return nil }
+        // The detail-view banner offers a one-tap fix, which only does something
+        // when there's a quarantine flag to clear — so this single-cask probe
+        // still requires the flag (unlike the full Trust Maintenance scan, which
+        // also surfaces watch-only risks). No flag → nothing to act on here.
         guard await isQuarantined(path: bundle.appPath) else { return nil }
 
         let reason = GatekeeperRiskReason.describe(
+            codesignValid: r.codesignValid,
+            teamIdentifier: r.teamIdentifier,
+            notarized: r.notarized,
+            signingAuthority: r.signingAuthority
+        )
+        let failed = GatekeeperRiskReason.failingChecks(
             codesignValid: r.codesignValid,
             teamIdentifier: r.teamIdentifier,
             notarized: r.notarized,
@@ -1351,7 +1380,9 @@ func brewVersion() async throws -> String {
             appName: r.appName,
             appPath: r.appPath,
             reason: reason,
-            signingAuthority: r.signingAuthority
+            failedChecks: failed,
+            signingAuthority: r.signingAuthority,
+            isQuarantined: true
         )
     }
 

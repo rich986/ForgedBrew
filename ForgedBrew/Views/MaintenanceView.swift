@@ -474,9 +474,11 @@ func loadFDAStatus() async {
         await loadOrphans(cli: cli)
     }
 
-    // Trust Maintenance (upcoming Homebrew change) state. Installed cask apps
-    // that Gatekeeper rejects today and that will break once Homebrew stops
-    // working around the cask quarantine flag (support ends Sept 1, 2026).
+    // Trust Management Screening (upcoming Homebrew change) state. Every installed cask
+    // app that macOS Gatekeeper rejects today — these are at risk after Sept 1,
+    // 2026, when Homebrew stops working around Gatekeeper for casks and drops
+    // those that fail it. Includes apps with no quarantine flag (still at risk,
+    // just no local action yet); the sheet splits actionable vs. watch-only.
     var gatekeeperRiskResult: GatekeeperRiskScanResult = .empty
     var trustScanning = false
     var trustHasScanned = false
@@ -491,20 +493,17 @@ func loadFDAStatus() async {
     // Per-app last-trust error, keyed by bundle path, so a row can show exactly
     // why clearing the quarantine flag failed.
     var trustErrors: [String: String] = [:]
-    // A top-level error for the "Trust All" path.
-    var trustAllError: String?
 
     // Scans installed cask apps and keeps only the ones Gatekeeper would reject
     // today — the apps at risk from the upcoming Homebrew cask-quarantine change.
     func loadGatekeeperRisks(cli: BrewCLIService) async {
         // Re-entrancy guard. Several paths can ask for a scan (the Review
-        // button, Re-scan, and trustApp/trustAllApps each re-scan when done).
+        // button, Re-scan, and trustApp re-scans when done).
         // Without this, overlapping Tasks each reset the counter to 0 and start
         // a fresh pass, so the progress bar appears to climb, snap back, climb
         // higher, snap back, etc. Bail out if a scan is already running.
         guard !trustScanning else { return }
         trustScanning = true
-        trustAllError = nil
         trustScannedCount = 0
         trustTotalCount = 0
         trustCurrentApp = nil
@@ -543,32 +542,6 @@ func loadFDAStatus() async {
         if !ok {
             trustErrors[risk.appPath] = "Couldn’t clear the quarantine flag for this app."
             return   // keep the app visible with its error
-        }
-        await loadGatekeeperRisks(cli: cli)
-    }
-
-    // Clears the quarantine flag on every at-risk app in one pass, then re-scans.
-    // Per-app failures are surfaced on their rows; a count of failures is
-    // surfaced via trustAllError.
-    func trustAllApps(cli: BrewCLIService) async {
-        let targets = gatekeeperRiskResult.risks
-        guard !targets.isEmpty else { return }
-        trustAllError = nil
-        for risk in targets {
-            trustingPaths.insert(risk.appPath)
-            trustErrors[risk.appPath] = nil
-        }
-        var failures = 0
-        for risk in targets {
-            let ok = await cli.removeQuarantine(at: risk.appPath)
-            trustingPaths.remove(risk.appPath)
-            if !ok {
-                failures += 1
-                trustErrors[risk.appPath] = "Couldn’t clear the quarantine flag for this app."
-            }
-        }
-        if failures > 0 {
-            trustAllError = "\(failures) app\(failures == 1 ? "" : "s") couldn’t be cleared. See the highlighted rows."
         }
         await loadGatekeeperRisks(cli: cli)
     }
@@ -1305,7 +1278,7 @@ struct MaintenanceView: View {
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.separator, lineWidth: 0.5))
     }
 
-    // MARK: - Trust Maintenance card
+    // MARK: - Trust Management Screening card
 
     // Short status line under the card title: a call to action, a running
     // indicator, or a one-line summary of the last scan.
@@ -1320,7 +1293,7 @@ struct MaintenanceView: View {
                 return "All apps will keep working"
             }
         }
-        return "Prepare for Homebrew’s cask quarantine change"
+        return "Check which apps may fail to launch after Sept 1, 2026"
     }
 
     @ViewBuilder
@@ -1339,7 +1312,7 @@ struct MaintenanceView: View {
                         .font(.system(size: 18))
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Trust Maintenance")
+                    Text("Trust Management Screening")
                         .font(.system(size: 13, weight: .semibold))
                         .fixedSize(horizontal: false, vertical: true)
                     Text(trustMaintenanceStatusText)

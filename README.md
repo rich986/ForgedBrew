@@ -90,8 +90,54 @@ app:
   diagnostics, orphaned-package detection, duplicate detection, and more).
 - **Security scanning** — surface Gatekeeper risks, clear quarantine, and flag
   known vulnerabilities so you know what's safe and what isn't.
+- **Trust Management Screening** — get ahead of the Homebrew cask quarantine
+  change landing **September 1, 2026** (see below).
 - **Cache, Backup & Restore** — manage ForgedBrew's on-disk cache and back up /
   restore your setup.
+
+#### Trust Management Screening
+
+Homebrew is changing how it handles casks: starting **September 1, 2026**,
+Homebrew will no longer remove the `com.apple.quarantine` flag from cask apps on
+your behalf. After that date, any cask app that macOS Gatekeeper does **not**
+fully trust can be blocked from launching — or forced through a manual
+right-click → Open workaround — when it's downloaded fresh.
+
+Trust Management Screening evaluates **every Homebrew cask app** on your Mac
+against the four signals macOS Gatekeeper uses to decide whether an app is
+trusted, and tells you — app by app — exactly which ones would have trouble
+after Sept 1 and *why*. It checks:
+
+1. **Code signature** — the app's signature is present and valid
+   (`codesign --verify`). A broken or missing signature fails Gatekeeper.
+2. **Developer ID / Team** — the app is signed with a recognized Apple
+   Developer ID rather than ad-hoc or self-signed (`codesign -dv`).
+3. **Notarization** — Apple has notarized the app and a notarization ticket is
+   stapled to it, so macOS can confirm it was scanned and approved.
+4. **Gatekeeper assessment** — macOS's own final verdict
+   (`spctl --assess --type execute`). This is the check that ultimately decides
+   whether the app is allowed to run.
+
+> **The quarantine flag is *not* one of these four checks.** It's a separate
+> "downloaded from the internet" tag macOS attaches to files. An app can have
+> the quarantine flag and still pass all four trust checks, and an app can be
+> missing the flag yet still *fail* Gatekeeper. That's why Trust Management
+> Screening reports on trust signals directly instead of just looking for the
+> flag.
+
+Results are grouped into two tiers:
+
+- **Trust now** — apps that currently carry the quarantine flag *and* fail
+  Gatekeeper. These are actionable today: clicking **Trust** removes the
+  quarantine flag (the same action as Maintenance ▸ Remove Quarantine) so the
+  app launches normally.
+- **Watch for Sept 1** — apps that fail one or more trust checks but don't have
+  the quarantine flag right now. They run fine today, but a fresh download
+  after Sept 1, 2026 could be blocked, so keep an eye on them.
+
+Each row shows the specific check(s) that failed and the app's signing authority,
+and you trust apps **one at a time** with a deliberate per-app **Trust** button —
+there is intentionally no "Trust All."
 
 ### Settings
 - **Appearance** — choose Light, Dark, or System (matches the quick toggle at the
@@ -129,10 +175,21 @@ app:
 
 ## Installing
 
-1. Download **ForgedBrew-2.3.1.dmg** from the
+1. Download **ForgedBrew-2.3.2.dmg** from the
    [latest release](https://github.com/HighfieldLondon/ForgedBrew/releases/latest).
 2. Open the DMG and drag **ForgedBrew** into your **Applications** folder.
 3. Double-click to launch.
+
+> **First launch:** macOS will ask once — *"ForgedBrew was downloaded from the
+> Internet. Are you sure you want to open it?"* — just click **Open**. This is
+> normal and expected for any app downloaded from the web. Because ForgedBrew is
+> signed with an Apple Developer ID and notarized by Apple, you get a simple
+> one-click confirmation (not a security block), and macOS won't ask again after
+> the first open.
+>
+> _(Heads up: starting **September 1, 2026**, Homebrew will stop clearing the
+> quarantine flag from cask apps automatically — the change ForgedBrew's own
+> Trust Management Screening helps you stay ahead of.)_
 
 ForgedBrew is signed with an Apple Developer ID and **notarized by Apple**, so it
 opens normally with a standard double-click — no right-click or security

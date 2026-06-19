@@ -14,23 +14,38 @@ import AppKit
 //     LAUNCHING, but it does NOT restore updates. Nothing the app does locally
 //     can bring a removed cask back into Homebrew's update path.
 //
-// This sheet lists the at-risk apps (Gatekeeper rejects them today, excluding
-// Apple system binaries) and lets the user clear the quarantine flag now — on
-// the apps they trust — one at a time or all at once, so those apps keep
-// opening. The action is `xattr -d com.apple.quarantine <app>` (no sudo) via
-// removeQuarantine(at:). The copy is careful to frame this as "keeps it
-// running, not updating", not as a full fix.
+// This sheet evaluates ALL the trust checks (signature, Developer ID,
+// notarization, Gatekeeper) for every installed cask app and lists every one
+// that macOS Gatekeeper would reject — i.e. the apps that would hit the "can't
+// be opened" wall after Sept 1 unless their developer ships a fix. Each app is
+// labelled with the SPECIFIC checks it fails. The list is split into two tiers:
+//
+//   • Trust now  — the app is Gatekeeper-rejected AND still carries the
+//                  com.apple.quarantine flag, so the Trust button can clear it
+//                  today (`xattr -d com.apple.quarantine`, no sudo) and keep the
+//                  app launching. This is the SAME operation as the Maintenance
+//                  ▸ Remove Quarantine page, scoped to this one app.
+//   • Watch for Sept 1 — the app is Gatekeeper-rejected but has no quarantine
+//                  flag to clear right now, so there's nothing to act on. It's
+//                  shown informationally so the user can keep an eye on it (a
+//                  popular app will likely be re-signed/notarized before the
+//                  deadline). If macOS re-quarantines it on a future upgrade,
+//                  the Remove Quarantine page is where to clear it.
+//
+// The screen is primarily INFORMATIONAL. The copy is careful to frame the Trust
+// action as "keeps it running, not updating," never as a full fix.
 //
 // Mirrors OrphansSheet/AdoptSheet: a single fixed frame (so AppKit lays out in
 // one pass and avoids _NSDetectedLayoutRecursion), header with Re-scan + Done,
-// a warning bar explaining the change, and scanning / empty / list states. Each
-// app shows its name, token, why Gatekeeper rejects it, and its bundle path
-// (with Reveal in Finder), plus a Trust button. The footer carries a caution
-// line and a "Trust All" button. Failures surface inline in red per-row.
+// a warning bar explaining the change, and scanning / empty / list states.
 struct TrustMaintenanceSheet: View {
     @Bindable var metrics: MaintenanceMetrics
     let cli: BrewCLIService
     @Environment(\.dismiss) private var dismiss
+
+    // Muted yellow used for the actionable "Trust" affordance — present but not
+    // alarming, since trusting is a deliberate, low-urgency choice.
+    private static let trustYellow = Color(red: 0.78, green: 0.62, blue: 0.07)
 
     private var busy: Bool {
         metrics.trustScanning || !metrics.trustingPaths.isEmpty
@@ -60,9 +75,9 @@ struct TrustMaintenanceSheet: View {
                 .foregroundStyle(.blue)
                 .font(.system(size: 18, weight: .semibold))
             VStack(alignment: .leading, spacing: 2) {
-                Text("Trust Maintenance")
+                Text("Trust Management Screening")
                     .font(.system(size: 15, weight: .bold))
-                Text("Apps Homebrew will stop updating after an upcoming change")
+                Text("Apps that fail macOS Gatekeeper and are at risk after Sept 1, 2026")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
@@ -81,11 +96,12 @@ struct TrustMaintenanceSheet: View {
         .padding(.top, 18)
         .padding(.bottom, 14)
     }
+
     // MARK: Change-explanation warning bar
     private var warningBar: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
-            Text("From September 1, 2026, Homebrew is removing casks that fail macOS Gatekeeper from its official tap. These apps won’t be deleted and will keep running — but Homebrew will no longer update or track them, so they’ll go stale. Clearing the quarantine flag now — only on apps you trust — keeps them launching; it does not restore Homebrew updates. For an app you rely on, look for a signed alternative.")
+            Text("From September 1, 2026, Homebrew is removing casks that fail macOS Gatekeeper from its official tap. These apps won’t be deleted and will keep running for now — but Homebrew will stop updating or tracking them, and once Homebrew drops its quarantine workaround they can hit the “can’t be opened” wall. Each app below is labelled with the exact checks it fails. Where a quarantine flag is present, the muted-yellow Trust button clears it (the same action as Maintenance ▸ Remove Quarantine) so a trusted app keeps launching — it does not restore Homebrew updates. Apps with no flag to clear are listed so you can keep an eye on them; many popular apps will be re-signed before the deadline.")
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
@@ -95,6 +111,7 @@ struct TrustMaintenanceSheet: View {
         .padding(.vertical, 12)
         .background(Color.orange.opacity(0.08))
     }
+
     // MARK: Content states
     @ViewBuilder
     private var content: some View {
@@ -105,30 +122,71 @@ struct TrustMaintenanceSheet: View {
                 Image(systemName: "checkmark.shield.fill")
                 Text("Nothing at risk")
                 Text(metrics.trustHasScanned
-                     ? "Every installed app passes Gatekeeper on its own, so the upcoming Homebrew change won’t affect their updates."
+                     ? "Every installed app passes macOS Gatekeeper on its own, so the upcoming Homebrew change won’t stop them launching."
                      : "Run a scan to check your installed apps against the upcoming Homebrew change.")
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    // Clean app list: each row is just the app (icon, name,
-                    // token, path) plus its Trust / Reveal actions. The reason
-                    // each app is flagged now lives in the framed box below the
-                    // list, so the list itself stays scannable.
-                    ForEach(metrics.gatekeeperRiskResult.risks) { risk in
-                        GatekeeperRiskRow(risk: risk, metrics: metrics, cli: cli)
-                        Divider().padding(.leading, 16)
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    let actionable = metrics.gatekeeperRiskResult.actionable
+                    let watch = metrics.gatekeeperRiskResult.watchOnly
+
+                    if !actionable.isEmpty {
+                        sectionHeader(
+                            title: "Trust now",
+                            count: actionable.count,
+                            subtitle: "Fails Gatekeeper and still carries the quarantine flag. Trust clears it so the app keeps launching."
+                        )
+                        ForEach(actionable) { risk in
+                            GatekeeperRiskRow(risk: risk, metrics: metrics, cli: cli)
+                            Divider().padding(.leading, 16)
+                        }
                     }
-                    // Shared, framed explanation box beneath the list. Collects
-                    // every flagged app's specific Gatekeeper reason in one place
-                    // so the rows can stay clean while the detail is preserved.
-                    warningDetailBox
+
+                    if !watch.isEmpty {
+                        sectionHeader(
+                            title: "Watch for Sept 1",
+                            count: watch.count,
+                            subtitle: "Fails Gatekeeper but has no quarantine flag to clear right now — nothing to act on yet. Keep an eye out; the developer may ship a signed, notarized update before the deadline."
+                        )
+                        ForEach(watch) { risk in
+                            GatekeeperRiskRow(risk: risk, metrics: metrics, cli: cli)
+                            Divider().padding(.leading, 16)
+                        }
+                    }
                 }
             }
         }
     }
+
+    // MARK: Section header (tier separator inside the list)
+    private func sectionHeader(title: String, count: Int, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 11, weight: .bold))
+                    .textCase(.uppercase)
+                    .foregroundStyle(.secondary)
+                Text("\(count)")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 1)
+                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+            }
+            Text(subtitle)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 8)
+    }
+
     // MARK: Live scan progress
     private var scanningProgress: some View {
         VStack(spacing: 14) {
@@ -157,72 +215,19 @@ struct TrustMaintenanceSheet: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    // MARK: Shared warning detail box (below the app list)
-    private var warningDetailBox: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                Text("Why these apps are flagged")
-            }
-            Text("Each app above fails macOS Gatekeeper on its own and still carries the “downloaded from the internet” quarantine flag. After September 1, 2026, Homebrew drops these casks from its official tap: the apps keep running but stop receiving Homebrew updates. Clearing the quarantine flag keeps a trusted app launching cleanly today — it doesn’t bring updates back. Here’s the specific reason each is flagged:")
-                .fixedSize(horizontal: false, vertical: true)
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(metrics.gatekeeperRiskResult.risks) { risk in
-                    HStack(alignment: .top, spacing: 6) {
-                        Text(risk.appName)
-                            .frame(width: 130, alignment: .leading)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(risk.reason)
-                                .fixedSize(horizontal: false, vertical: true)
-                            if let authority = risk.signingAuthority, !authority.isEmpty {
-                                Text(authority)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                            }
-                        }
-                        Spacer(minLength: 0)
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.orange.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(Color.orange.opacity(0.25), lineWidth: 1)
-        )
-    }
+
     // MARK: Footer
     private var footer: some View {
         VStack(spacing: 8) {
-            // Top-level "Trust All" error, if any app in the batch failed.
-            if let allError = metrics.trustAllError, !allError.isEmpty {
-                HStack(alignment: .top, spacing: 5) {
-                    Image(systemName: "xmark.circle.fill")
-                    Text(allError)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                }
-            }
+            // No "Trust All": trusting is a deliberate, per-app decision. The
+            // user clicks Trust on each app they recognize, one at a time, so
+            // they consciously vouch for each source rather than clearing a
+            // whole batch at once.
             HStack(spacing: 10) {
                 Image(systemName: "lock.shield")
-                Text("Keeps trusted apps launching — not updating. Only trust sources you recognize.")
-                Spacer()
-                let count = metrics.gatekeeperRiskResult.count
-                if count > 0 {
-                    Button {
-                        Task { await metrics.trustAllApps(cli: cli) }
-                    } label: {
-                        Text("Trust All (\(count))")
-                    }
-                    .buttonStyle(PillActionButtonStyle())
-                    .disabled(busy)
-                }
+                Text("Trust keeps an app launching — not updating. Trust apps one at a time, only sources you recognize.")
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
             }
         }
         .padding(16)
@@ -235,15 +240,18 @@ struct TrustMaintenanceSheet: View {
 
 // MARK: - GatekeeperRiskRow
 //
-// One at-risk app, kept deliberately clean: shield icon + app name + token, the
-// bundle path with Reveal in Finder, and a Trust button. The reason Gatekeeper
-// rejects it (and its signing authority) lives in the shared framed box below
-// the list, not here, so the list stays scannable. Failures surface inline in
-// red and the row stays visible.
+// One at-risk app: shield icon + app name + token, the specific failing trust
+// checks as small badges, the bundle path with Reveal in Finder, and — only
+// when the app still carries a quarantine flag (risk.actionable) — a muted
+// yellow Trust button that clears it. Watch-only apps (no flag to clear) show
+// an informational note pointing to Maintenance ▸ Remove Quarantine instead of
+// a button, so we never offer a no-op action. Failures surface inline in red.
 struct GatekeeperRiskRow: View {
     let risk: GatekeeperRisk
     @Bindable var metrics: MaintenanceMetrics
     let cli: BrewCLIService
+
+    private static let trustYellow = Color(red: 0.78, green: 0.62, blue: 0.07)
 
     var body: some View {
         let isTrusting = metrics.trustingPaths.contains(risk.appPath)
@@ -281,17 +289,58 @@ struct GatekeeperRiskRow: View {
                 }
                 .buttonStyle(.plain)
                 .help("Reveal in Finder")
-                if isTrusting {
-                    ProgressView().scaleEffect(0.6)
-                } else {
-                    Button {
-                        Task { await metrics.trustApp(risk, cli: cli) }
-                    } label: {
-                        Text("Trust")
+
+                // Only an app that still carries a quarantine flag has anything
+                // for the Trust button to clear. Watch-only apps get no button.
+                if risk.actionable {
+                    if isTrusting {
+                        ProgressView().scaleEffect(0.6)
+                    } else {
+                        Button {
+                            Task { await metrics.trustApp(risk, cli: cli) }
+                        } label: {
+                            Text("Trust")
+                        }
+                        .buttonStyle(PillActionButtonStyle(tint: Self.trustYellow, cornerRadius: 7))
+                        .help("Clears the quarantine flag (xattr -d com.apple.quarantine) so this app keeps launching. Same as Maintenance ▸ Remove Quarantine. Does not restore Homebrew updates.")
+                        .disabled(!metrics.trustingPaths.isEmpty || metrics.trustScanning)
                     }
-                    .buttonStyle(PillActionButtonStyle(cornerRadius: 7))
-                    .disabled(!metrics.trustingPaths.isEmpty || metrics.trustScanning)
                 }
+            }
+
+            // The specific trust checks this app fails, as small badges, so the
+            // user sees exactly what wouldn't pass on Sept 1.
+            HStack(spacing: 6) {
+                ForEach(risk.failedChecks, id: \.self) { check in
+                    Text(check)
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule().fill(Color.orange.opacity(0.12))
+                        )
+                }
+                // Make it explicit when there is no local fix available yet.
+                if !risk.actionable {
+                    Text("No quarantine flag to clear — watch for Sept 1")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.leading, 38)
+
+            // Signing authority (who signed it), when present, for context.
+            if let authority = risk.signingAuthority, !authority.isEmpty {
+                Text(authority)
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .padding(.leading, 38)
             }
 
             // Bundle path (monospaced, middle-truncated) so the user can see
