@@ -119,9 +119,12 @@ EXPORTED_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" \
 
 # ── 3. Notarize ───────────────────────────────────────────────────────────────
 bold "==> Notarizing (this may take a few minutes)…"
-xcrun notarytool submit "$APP_PATH" \
+APP_ZIP="$BUILD_DIR/ForgedBrew.zip"
+ditto -c -k --keepParent "$APP_PATH" "$APP_ZIP"
+xcrun notarytool submit "$APP_ZIP" \
     --keychain-profile "$KEYCHAIN_PROFILE" \
     --wait
+rm -f "$APP_ZIP"
 green "    Notarization accepted."
 
 # ── 4. Staple ─────────────────────────────────────────────────────────────────
