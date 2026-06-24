@@ -5,7 +5,25 @@
         <link>https://raw.githubusercontent.com/HighfieldLondon/ForgedBrew/main/appcast.xml</link>
         <description>Most recent updates to ForgedBrew.</description>
         <language>en</language>
-                        <item>
+                                <item>
+            <title>Version 2.3.6</title>
+            <description><![CDATA[
+                <h2>ForgedBrew 2.3.6</h2>
+                <p>UI polish: installed badge now shown in green, wider default window on first launch</p>
+            ]]></description>
+            <pubDate>Wed, 24 Jun 2026 15:30:02 +0000</pubDate>
+            <sparkle:version>236</sparkle:version>
+            <sparkle:shortVersionString>2.3.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.6/ForgedBrew.dmg"
+                sparkle:version="236"
+                sparkle:shortVersionString="2.3.6"
+                length="13050458"
+                type="application/octet-stream"
+                sparkle:edSignature="m6OyzZRKOP0CSGqAqxrtBrOKpJkQt5J72bWainXY5DDClINeSLJNeReAwcP2ruCcwwcwhXDljqdBgsdAcwRBDg==" />
+        </item>
+        <item>
             <title>Version 2.3.5</title>
             <description><![CDATA[
                 <h2>ForgedBrew 2.3.5</h2>
