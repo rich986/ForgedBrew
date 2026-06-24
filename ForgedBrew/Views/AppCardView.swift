@@ -132,7 +132,7 @@ struct InstallButton: View {
     private var color: Color {
         switch state {
         case .get: return .accentColor
-        case .installed: return .secondary
+        case .installed: return ActionColors.installed
         case .update: return .orange
         }
     }
@@ -141,12 +141,12 @@ struct InstallButton: View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(state == .installed ? AnyShapeStyle(.secondary) : AnyShapeStyle(.white))
+                .foregroundStyle(AnyShapeStyle(.white))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5)
                 .background(
                     state == .installed
-                        ? AnyShapeStyle(Color.secondary.opacity(0.15))
+                        ? AnyShapeStyle(ActionColors.installed.opacity(0.85))
                         : AnyShapeStyle(color),
                     in: Capsule()
                 )

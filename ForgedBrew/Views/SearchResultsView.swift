@@ -49,12 +49,12 @@ struct SearchResultRow: View {
             } label: {
                 Text(isInstalled ? (isOutdated ? "Update" : "Installed") : "Get")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(isInstalled && !isOutdated ? AnyShapeStyle(.secondary) : AnyShapeStyle(.white))
+                    .foregroundStyle(AnyShapeStyle(.white))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 5)
                     .background(
                         isInstalled && !isOutdated
-                            ? AnyShapeStyle(Color.secondary.opacity(0.12))
+                            ? AnyShapeStyle(ActionColors.installed.opacity(0.85))
                             : AnyShapeStyle(Color.accentColor),
                         in: Capsule()
                     )

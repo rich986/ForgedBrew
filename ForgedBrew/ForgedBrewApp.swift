@@ -533,7 +533,7 @@ enum WindowFramePersistence {
         let saved = UserDefaults.standard.double(forKey: sidebarKey)
         // If the user never adjusted it, default to a width that shows the full
         // sidebar labels (matches navigationSplitViewColumnWidth ideal/upper).
-        let target: CGFloat = saved > 1 ? CGFloat(saved) : 320
+        let target: CGFloat = saved > 1 ? CGFloat(saved) : 360
         split.setPosition(target, ofDividerAt: 0)
     }
 
@@ -987,7 +987,7 @@ struct ForgedBrewApp: App {
                 SidebarView(selection: $sidebarSelection)
                     // Explicit sidebar column width for deterministic split-view
                     // sizing at launch.
-                    .navigationSplitViewColumnWidth(min: 300, ideal: 320, max: 380)
+                    .navigationSplitViewColumnWidth(min: 240, ideal: 360, max: 420)
             } detail: {
                 DetailRouter(selection: $sidebarSelection,
                              browseViewModel: browseViewModel,
@@ -1099,7 +1099,7 @@ struct ForgedBrewApp: App {
             .animation(.easeInOut(duration: 0.25), value: appDataService.isRefreshingEverything)
         }
         .windowStyle(.titleBar)
-        .defaultSize(width: 1320, height: 820)
+        .defaultSize(width: 1440, height: 860)
         // Pin the main window to a minimum content size instead of the default
         // automatic resizability. Without this, the WindowGroup sizes to the
         // detail content ideal width, which the Installed view (segmented
