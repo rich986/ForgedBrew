@@ -5,7 +5,25 @@
         <link>https://raw.githubusercontent.com/HighfieldLondon/ForgedBrew/main/appcast.xml</link>
         <description>Most recent updates to ForgedBrew.</description>
         <language>en</language>
-                                <item>
+                                        <item>
+            <title>Version 2.3.7</title>
+            <description><![CDATA[
+                <h2>ForgedBrew 2.3.7</h2>
+                <p>ForgedBrew 2.3.7 is a correctness, performance, and reliability release. Update detection now catches build-number-only bumps (common for self-updating apps); Installed and Updates lists scroll more smoothly; catalog and detail requests have proper network timeouts; in-memory text caches are bounded for lighter memory use during long sessions; the Shortcuts/Siri Install action now confirms first and reports accurate results; Open-Source and security info use more accurate GitHub repo detection; and admin-password handling plus startup robustness were hardened.</p>
+            ]]></description>
+            <pubDate>Wed, 24 Jun 2026 16:29:16 +0000</pubDate>
+            <sparkle:version>237</sparkle:version>
+            <sparkle:shortVersionString>2.3.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.7/ForgedBrew.dmg"
+                sparkle:version="237"
+                sparkle:shortVersionString="2.3.7"
+                length="13062462"
+                type="application/octet-stream"
+                sparkle:edSignature="UYfa3Z48aMSgKaImjB28ZCdarB2s1VzHxO9u5M/0iOR7yATk7h2nN1Y5V3hGpFV5d/HL/7eJdesRdjlAGd1vCA==" />
+        </item>
+        <item>
             <title>Version 2.3.6</title>
             <description><![CDATA[
                 <h2>ForgedBrew 2.3.6</h2>
