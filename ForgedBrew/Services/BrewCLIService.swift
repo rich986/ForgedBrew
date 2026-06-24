@@ -157,9 +157,17 @@ actor BrewCLIService {
     // The password file is 0600 (owner-only), lives in the per-user temp dir,
     // and is deleted as soon as the run finishes (see run(_:sudoPassword:)).
     private static func writeAskpassAssets(password: String) -> AskpassAssets? {
+        // Use a per-operation UUID in the file names so that concurrent batch
+        // upgrades each get their own password file. Without this, all queued
+        // brew runs write to the same fixed path: when operation A finishes and
+        // wipes the shared file, operation B (still waiting behind the brew lock)
+        // finds its password file gone, sudo gets an empty response, and the
+        // update silently stalls. Unique names mean each operation's file lives
+        // exactly as long as its own run — deletion by A never affects B.
+        let tag = UUID().uuidString
         let dir = NSTemporaryDirectory()
-        let scriptURL = URL(fileURLWithPath: dir).appendingPathComponent("forgedbrew-askpass.sh")
-        let pwURL = URL(fileURLWithPath: dir).appendingPathComponent("forgedbrew-askpass-pw")
+        let scriptURL = URL(fileURLWithPath: dir).appendingPathComponent("forgedbrew-askpass-\(tag).sh")
+        let pwURL = URL(fileURLWithPath: dir).appendingPathComponent("forgedbrew-askpass-pw-\(tag)")
         // sudo strips exactly one trailing newline from the askpass output, so
         // the file holds `password\n`; `cat` then emits `password\n` and sudo
         // sees `password`. The password is written verbatim — no trimming here
