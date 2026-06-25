@@ -5,7 +5,25 @@
         <link>https://raw.githubusercontent.com/HighfieldLondon/ForgedBrew/main/appcast.xml</link>
         <description>Most recent updates to ForgedBrew.</description>
         <language>en</language>
-                                        <item>
+                                                <item>
+            <title>Version 2.4.0</title>
+            <description><![CDATA[
+                <h2>ForgedBrew 2.4.0</h2>
+                <p>Further clean up and refinement, bug fixes and improvements.</p>
+            ]]></description>
+            <pubDate>Thu, 25 Jun 2026 17:18:41 +0000</pubDate>
+            <sparkle:version>240</sparkle:version>
+            <sparkle:shortVersionString>2.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure
+                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.4.0/ForgedBrew.dmg"
+                sparkle:version="240"
+                sparkle:shortVersionString="2.4.0"
+                length="13079494"
+                type="application/octet-stream"
+                sparkle:edSignature="4KBCzZazHV+sTcojpDFazX2W0NJo2KhBVUj3L3xlhknUEh9ZYHi1Dm4P2qnitHcs5d+TuqyV7I0qXFcFJie2Dw==" />
+        </item>
+        <item>
             <title>Version 2.3.7</title>
             <description><![CDATA[
                 <h2>ForgedBrew 2.3.7</h2>
