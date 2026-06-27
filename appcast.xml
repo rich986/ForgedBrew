@@ -5,7 +5,7 @@
         <link>https://raw.githubusercontent.com/HighfieldLondon/ForgedBrew/main/appcast.xml</link>
         <description>Most recent updates to ForgedBrew.</description>
         <language>en</language>
-                                                        <item>
+        <item>
             <title>Version 2.4.1</title>
             <description><![CDATA[
                 <h2>ForgedBrew 2.4.1</h2>
@@ -40,135 +40,6 @@
                 length="13079494"
                 type="application/octet-stream"
                 sparkle:edSignature="4KBCzZazHV+sTcojpDFazX2W0NJo2KhBVUj3L3xlhknUEh9ZYHi1Dm4P2qnitHcs5d+TuqyV7I0qXFcFJie2Dw==" />
-        </item>
-        <item>
-            <title>Version 2.3.7</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.7</h2>
-                <p>ForgedBrew 2.3.7 is a correctness, performance, and reliability release. Update detection now catches build-number-only bumps (common for self-updating apps); Installed and Updates lists scroll more smoothly; catalog and detail requests have proper network timeouts; in-memory text caches are bounded for lighter memory use during long sessions; the Shortcuts/Siri Install action now confirms first and reports accurate results; Open-Source and security info use more accurate GitHub repo detection; and admin-password handling plus startup robustness were hardened.</p>
-            ]]></description>
-            <pubDate>Wed, 24 Jun 2026 16:29:16 +0000</pubDate>
-            <sparkle:version>237</sparkle:version>
-            <sparkle:shortVersionString>2.3.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.7/ForgedBrew.dmg"
-                sparkle:version="237"
-                sparkle:shortVersionString="2.3.7"
-                length="13062462"
-                type="application/octet-stream"
-                sparkle:edSignature="UYfa3Z48aMSgKaImjB28ZCdarB2s1VzHxO9u5M/0iOR7yATk7h2nN1Y5V3hGpFV5d/HL/7eJdesRdjlAGd1vCA==" />
-        </item>
-        <item>
-            <title>Version 2.3.6</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.6</h2>
-                <p>UI polish: installed badge now shown in green, wider default window on first launch</p>
-            ]]></description>
-            <pubDate>Wed, 24 Jun 2026 15:30:02 +0000</pubDate>
-            <sparkle:version>236</sparkle:version>
-            <sparkle:shortVersionString>2.3.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.6/ForgedBrew.dmg"
-                sparkle:version="236"
-                sparkle:shortVersionString="2.3.6"
-                length="13050458"
-                type="application/octet-stream"
-                sparkle:edSignature="m6OyzZRKOP0CSGqAqxrtBrOKpJkQt5J72bWainXY5DDClINeSLJNeReAwcP2ruCcwwcwhXDljqdBgsdAcwRBDg==" />
-        </item>
-        <item>
-            <title>Version 2.3.5</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.5</h2>
-                <p>Misc bug fixes and cleanup</p>
-            ]]></description>
-            <pubDate>Wed, 24 Jun 2026 15:12:14 +0000</pubDate>
-            <sparkle:version>235</sparkle:version>
-            <sparkle:shortVersionString>2.3.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.5/ForgedBrew.dmg"
-                sparkle:version="235"
-                sparkle:shortVersionString="2.3.5"
-                length="13051048"
-                type="application/octet-stream"
-                sparkle:edSignature="K2sSF4OTtMSbyW/zIfA+Ylvpfa1HRUBOxvWOIA+M0wwU5fNHBJNbFOjNVY3QTd5CEj41JbgUKJ6spHtfUPGoAg==" />
-        </item>
-        <item>
-            <title>Version 2.3.4</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.4</h2>
-                <p>Fixes a bug where apps requiring admin access (such as Microsoft apps) could stall silently during a batch update.</p>
-            ]]></description>
-            <pubDate>Wed, 24 Jun 2026 14:11:38 +0000</pubDate>
-            <sparkle:version>234</sparkle:version>
-            <sparkle:shortVersionString>2.3.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.4/ForgedBrew.dmg"
-                sparkle:version="234"
-                sparkle:shortVersionString="2.3.4"
-                length="13041324"
-                type="application/octet-stream"
-                sparkle:edSignature="d5zxeU7SjJR6Rq9wv/OZpzLK+uB9kJJNd7ktwi+lbTNQKQY70EDKljgSxy9PrIuafIB+n5cMam21m9nzNMx3Dw==" />
-        </item>
-        <item>
-            <title>Version 2.3.3</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.3</h2>
-                <p><strong>Trust Management Screening</strong> (formerly Trust Maintenance) — get ahead of Homebrew's <strong>September 1, 2026</strong> cask quarantine change, when Homebrew stops clearing the macOS quarantine flag for casks.</p>
-                <p>This screen now evaluates <strong>every</strong> Homebrew cask app against the four signals macOS Gatekeeper uses to trust an app — code signature, Developer ID, notarization, and Gatekeeper assessment — and flags, app by app, which ones could be blocked after Sept 1 and why. Results split into <em>Trust now</em> (actionable today) and <em>Watch for Sept 1</em> (runs fine now, at risk on a fresh download later). Trust apps one at a time with a deliberate per-app Trust button — no "Trust All."</p>
-                <p>Also includes a fix for Sparkle auto-update relaunch when running in the menu bar.</p>
-            ]]></description>
-            <pubDate>Fri, 19 Jun 2026 15:10:35 +0000</pubDate>
-            <sparkle:version>233</sparkle:version>
-            <sparkle:shortVersionString>2.3.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.3/ForgedBrew.dmg"
-                sparkle:version="233"
-                sparkle:shortVersionString="2.3.3"
-                length="13039932"
-                type="application/octet-stream"
-                sparkle:edSignature="2E4BRJPvJpET+nfqs6ix844JaRd4BJG8MYaOWzknEn+3UW8k5JvLZRBvnh4gXKfUGL8rvFa1kHEOF03+TZ/jDA==" />
-        </item>
-        <item>
-            <title>Version 2.3.2</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.2</h2>
-                <p>ForgedBrew is a beautiful, native GUI for Homebrew on macOS — discover, search, install, and update your apps and command-line tools without ever touching the Terminal.</p>
-                <p>This release brings polish and under-the-hood improvements to keep ForgedBrew fast, reliable, and ready for everyone.</p>
-            ]]></description>
-            <pubDate>Wed, 17 Jun 2026 14:30:57 +0000</pubDate>
-            <sparkle:version>232</sparkle:version>
-            <sparkle:shortVersionString>2.3.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.2/ForgedBrew-2.3.2.dmg"
-                sparkle:version="232"
-                sparkle:shortVersionString="2.3.2"
-                length="13028787"
-                type="application/octet-stream"
-                sparkle:edSignature="bDLBIOCm3pPgBbZonXsqcZWzzspoXbYDr6LABpxvx6+m3NVVoFzjfsCJYhC3my28jCAGIPBBVxMdXX+z+BGZCA==" />
-        </item>
-        <item>
-            <title>Version 2.3.1</title>
-            <description><![CDATA[
-                <h2>ForgedBrew 2.3.1</h2>
-                <p>A beautiful looking glass into Homebrew - that gives you all you need to search, inform, and install your Homebrew apps and formulas.</p>
-            ]]></description>
-            <pubDate>Tue, 16 Jun 2026 13:28:47 +0000</pubDate>
-            <sparkle:version>231</sparkle:version>
-            <sparkle:shortVersionString>2.3.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure
-                url="https://github.com/HighfieldLondon/ForgedBrew/releases/download/v2.3.1/ForgedBrew-2.3.1.dmg"
-                sparkle:version="231"
-                sparkle:shortVersionString="2.3.1"
-                length="10201681"
-                type="application/octet-stream"
-                sparkle:edSignature="AFnuCtbSdN3AhAGdxf2Bu8i+A13VvITCSq+DQHWCfG9l4fq6nNtYNhHC5CtMN2PbBUdaG/a/PW6j+aMMpHarAQ==" />
         </item>
     </channel>
 </rss>
