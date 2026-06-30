@@ -1135,6 +1135,29 @@ func brewVersion() async throws -> String {
         return pairs
     }
 
+    // Every app bundle the SECURITY SCAN should audit: all Homebrew casks PLUS
+    // every other installed app across the user's enabled folders (/Applications,
+    // ~/Applications, and any custom folders added in Settings), de-duped by
+    // resolved path. Unlike the Trust/Gatekeeper scan — which is intentionally
+    // cask-scoped because it's about the Sept 1, 2026 Homebrew cask-quarantine
+    // change — the Security Scan's codesign/spctl checks apply to ANY app, so the
+    // user gets a signature/notarization/Gatekeeper verdict for every installed
+    // app (including ForgedBrew itself), not just casks. Non-cask apps use their
+    // resolved bundle path as a unique internal token; the row always displays the
+    // app name, never the token (see AppSecurityResult).
+    func installedAppBundlesToSecurityScan() async -> [(token: String, appPath: String)] {
+        var bundles = (try? await installedCaskAppBundles()) ?? []
+        var seen = Set(bundles.map {
+            URL(fileURLWithPath: $0.appPath).resolvingSymlinksInPath().path
+        })
+        for app in AppLocationSettings.installedAppBundles() {
+            let resolved = URL(fileURLWithPath: app.path).resolvingSymlinksInPath().path
+            guard seen.insert(resolved).inserted else { continue }
+            bundles.append((token: resolved, appPath: resolved))
+        }
+        return bundles
+    }
+
     // Runs the local security checks on a single app bundle and parses the
     // output into an AppSecurityResult. No network access — this is purely
     // macOS's own codesign + spctl tooling, the same checks Gatekeeper performs

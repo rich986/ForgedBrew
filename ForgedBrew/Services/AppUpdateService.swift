@@ -1016,9 +1016,22 @@ final class AppUpdateService {
     // sets the bundle's creation date when the app is first written to /
     // Applications, so it's a reasonable proxy for when the user installed it.
     // nil when neither attribute can be read.
+    //
+    // Guard against a BOGUS creation date: a bundle rewritten in place (e.g. by a
+    // Sparkle self-update) can report a creationDate at the classic Mac "zero"
+    // epoch (~Jan 1, 1904), which would render as a nonsensical "Installed
+    // Dec 31, 1903". Reject any date before macOS X existed and fall back to the
+    // modification date — for a freshly written/updated bundle that's a good
+    // install-date proxy (and is what a just-updated app should show).
     nonisolated static func bundleInstallDate(atPath path: String) -> Date? {
+        // Jan 1, 2001 (NSDate reference epoch); no real Mac app predates OS X.
+        let earliestPlausible = Date(timeIntervalSinceReferenceDate: 0)
+        func plausible(_ date: Any?) -> Date? {
+            guard let date = date as? Date, date >= earliestPlausible else { return nil }
+            return date
+        }
         let attrs = try? FileManager.default.attributesOfItem(atPath: path)
-        return (attrs?[.creationDate] as? Date) ?? (attrs?[.modificationDate] as? Date)
+        return plausible(attrs?[.creationDate]) ?? plausible(attrs?[.modificationDate])
     }
 
     // Runs a command and returns combined stdout, or nil on failure. Used for

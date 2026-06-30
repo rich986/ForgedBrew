@@ -28,6 +28,26 @@ Mac healthy and secure — all without touching the Terminal.
 
 ---
 
+## What's new in 2.4.2
+
+A focused follow-up to 2.4.1 that widens the security scan and fixes a cosmetic
+install-date glitch.
+
+- **The Security Scan now covers every installed app.** Previously it checked
+  only apps Homebrew installed as casks; it now runs macOS's own signature,
+  notarization, and Gatekeeper checks against **every app** in /Applications,
+  ~/Applications, and your custom folders — including apps you installed
+  yourself and ForgedBrew itself. Results are still listed A–Z and remembered
+  for 24 hours, so the larger sweep only re-runs occasionally.
+- **No more "Installed Dec 31, 1903."** After an in-app update, ForgedBrew (and
+  any app updated in place) could show a nonsensical 1903 install date. The date
+  is now read correctly, which also fixes sorting by install date.
+- **Clearer quarantine wording.** The quarantine sheet no longer hardcodes
+  "/Applications and ~/Applications" — it reflects all the folders ForgedBrew
+  actually scans, including your custom ones.
+
+---
+
 ## What's new in 2.4.1
 
 Sharper, faster **Trust Management Screening** and security scanning ahead of

@@ -784,12 +784,12 @@ func loadFDAStatus() async {
         securityScannedCount = 0
         securityCurrentApp = nil
 
-        let bundles = (try? await cli.installedCaskAppBundles()) ?? []
+        let bundles = await cli.installedAppBundlesToSecurityScan()
         securityTotalCount = bundles.count
 
         guard !bundles.isEmpty else {
             securityHasScanned = true
-            securityError = "No cask-installed apps were found to scan."
+            securityError = "No installed apps were found to scan."
             securityScannedAt = Date()
             // Deliberately NOT persisted: a saved empty report would reload as a
             // misleading "All 0 apps passed" because securityError isn't part of
@@ -798,9 +798,15 @@ func loadFDAStatus() async {
             return
         }
 
-        // Scan sequentially so results appear one-by-one in a predictable order.
-        // Each scan is a few quick subprocesses; the whole set finishes fast.
-        for bundle in bundles.sorted(by: { $0.token < $1.token }) {
+        // Scan sequentially so results appear one-by-one, sorted A–Z by app name
+        // (non-cask apps use their bundle PATH as the token, so we can't sort on
+        // the token). Each scan is a few quick subprocesses; results are cached for
+        // 24h, so the larger "all installed apps" sweep only re-runs occasionally.
+        for bundle in bundles.sorted(by: {
+            let a = (($0.appPath as NSString).lastPathComponent as NSString).deletingPathExtension
+            let b = (($1.appPath as NSString).lastPathComponent as NSString).deletingPathExtension
+            return a.localizedCaseInsensitiveCompare(b) == .orderedAscending
+        }) {
             // Show which app we're on (derive a friendly name from the path).
             let name = ((bundle.appPath as NSString).lastPathComponent as NSString)
                 .deletingPathExtension
@@ -2329,8 +2335,9 @@ struct MaintenanceView: View {
         }
     }
 }
-/// Multi-select sheet listing every quarantined file under /Applications and
-/// ~/Applications. The user can check any subset and remove quarantine, or use
+/// Multi-select sheet listing every quarantined app across the folders ForgedBrew
+/// scans (/Applications, ~/Applications, and the user's custom app folders).
+/// The user can check any subset and remove quarantine, or use
 /// the top button to clear quarantine from all listed files at once. Backed by
 /// the shared `MaintenanceMetrics` (scan + removal state live there).
 struct QuarantineSheet: View {
@@ -2350,7 +2357,11 @@ struct QuarantineSheet: View {
                 Image(systemName: "lock.open")
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Quarantined Files")
-                    Text("/Applications and ~/Applications")
+                    // Keep this crisp instead of listing every scanned path — the
+                    // custom folders could be several long paths. The actual set is
+                    // /Applications + ~/Applications + the user's custom app folders
+                    // (Settings), per AppLocationSettings.
+                    Text("/Applications, ~/Applications & your custom app folders")
                 }
                 // Manual re-scan of the quarantine list, just to the right of
                 // the title. Disabled while a scan or removal is in flight.
@@ -2418,7 +2429,7 @@ struct QuarantineSheet: View {
                             .foregroundStyle(.green)
                         Text("No quarantined files found")
                             .font(.system(size: 13, weight: .medium))
-                        Text("Nothing in /Applications or ~/Applications carries the quarantine flag.")
+                        Text("None of your installed apps carry the quarantine flag.")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)

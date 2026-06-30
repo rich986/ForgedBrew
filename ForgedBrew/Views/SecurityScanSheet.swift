@@ -16,8 +16,9 @@ func lastScannedCaption(_ date: Date) -> String {
 //
 // The Diagnostics / Security Scan sheet. It runs macOS's own security tooling
 // (codesign + spctl — the same checks Gatekeeper performs when you first open
-// an app) against every cask-installed app bundle and reports a per-app
-// pass / fail.
+// an app) against every installed app bundle — Homebrew casks plus everything in
+// the user's scanned folders (/Applications, ~/Applications, custom) — and
+// reports a per-app pass / fail.
 //
 // IMPORTANT (design principle): the sheet always tells the user exactly WHAT it is
 // scanning for, both before they run it (the "What this scan checks" panel) and
@@ -33,7 +34,8 @@ struct SecurityScanSheet: View {
     // securityScannedAt timestamp, and loadSecurityScan(...) which streams
     // per-app verdicts in as each codesign/spctl check completes.
     @Bindable var metrics: MaintenanceMetrics
-    // Used to enumerate the cask-installed app bundles to inspect.
+    // Used to enumerate the installed app bundles to inspect (casks + all apps
+    // in the user's scanned folders, via installedAppBundlesToSecurityScan()).
     let cli: BrewCLIService
     @Environment(\.dismiss) private var dismiss
 
@@ -168,8 +170,8 @@ struct SecurityScanSheet: View {
             ProgressView(value: Double(done), total: Double(total))
                 .frame(width: 540)
             // Same reassurance the Trust scan shows: these checks run macOS's
-            // own security tools on every cask, so a large library can take a
-            // while — the note keeps the wait from reading as a hang.
+            // own security tools on every installed app, so a large library can
+            // take a while — the note keeps the wait from reading as a hang.
             Text("This scan can take a few minutes — depending on how many apps are being checked. ForgedBrew runs macOS's own security tools on each one.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
@@ -190,7 +192,7 @@ struct SecurityScanSheet: View {
                 Text("What this scan checks")
                     .font(.system(size: 12, weight: .semibold))
             }
-            Text("For every app Homebrew installed as a cask, ForgedBrew runs macOS's own security tools — the same checks Gatekeeper performs when you first open an app. Nothing leaves your Mac.")
+            Text("For every installed app — your Homebrew casks plus everything in /Applications, ~/Applications, and your custom folders — ForgedBrew runs macOS's own security tools, the same checks Gatekeeper performs when you first open an app. Nothing leaves your Mac.")
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
