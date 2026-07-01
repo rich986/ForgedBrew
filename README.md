@@ -340,6 +340,25 @@ ForgedBrew updates itself automatically using the Sparkle framework, checking a
 signed appcast so you always have the latest version. You can also check on
 demand from Settings ▸ General & Updates.
 
+## Development & testing
+
+ForgedBrew is a single-target SwiftUI app — open `ForgedBrew.xcodeproj` in Xcode
+and build; no code generation or extra tooling required.
+
+The correctness- and security-critical *pure* logic is covered by a unit-test
+suite (Swift Testing) in `ForgedBrewTests/`, which I run locally before cutting a
+release:
+
+```sh
+xcodebuild test -project ForgedBrew.xcodeproj -scheme ForgedBrew \
+  -destination 'platform=macOS'
+```
+
+(or press ⌘U in Xcode). It currently covers version comparison (update
+detection), the CVSS base-score calculator, terminal/ANSI output parsing, the
+SSRF URL guard, and bundle install-date handling — the spots most prone to subtle
+regressions. These run locally rather than in CI.
+
 ---
 
 ## About
